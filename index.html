@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head><script src='../phaser.min.js'></script>
+  </head>
+
+  <body>
+    <script>
+      var boat, cursors, boatBlocked;
+      var buoys, gates = new Array();
+      var gate_0, gate_1, gate_2, gate_3, gate_4, gate_5, gate_6;
+      var thruGate0, thruGate1, thruGate2, thruGate3, thruGate4, thruGate5, thruGate6, thruAllGates;
+      
+      var race = new Phaser.Class({
+	  Extends: Phaser.Scene,
+
+	  initialize: function race(){
+	      Phaser.Scene.call(this, {key: 'race'});
+	  },
+	  
+	  preload: function(){
+	      this.load.image('boat', 'assets/boat.png');
+	      this.load.image('buoy', 'assets/buoy.png');
+
+	  },
+	  
+	  create: function(){
+	      boatBlocked = false;
+	      thruGate1, thruGate2, thruGate3, thruGate4, thruGate5, thruGate6 = false;
+	      
+	      boat = this.physics.add.sprite(50, 275, 'boat').setScale(4);
+
+	      // GENERATE BUOYS
+	      buoys = [
+		  [ // gate_0, i = 0
+		      [150, 150], // j = 0
+		      [150, 400],
+		      [200, 150],
+		      [200, 400]
+		  ],
+		  [  //gate_1, i = 1
+		      [400, 200],
+		      [400, 450],
+		      [450, 200],
+		      [450, 450]
+		  ],
+		  [ // gate_2, i = 2
+		      [650, 100], // j = 0
+		      [650, 350],
+		      [700, 100],
+		      [700, 350] // j = 4
+		  ],
+		  [ // gate_3
+		      [800, 300],
+		      [800, 550],
+		      [850, 300],
+		      [850, 550]
+		  ],
+		  [ // gate_4
+		      [550, 500],
+		      [550, 750],
+		      [600, 500],
+		      [600, 750]
+		  ],
+		  [ // gate_5
+		      [300, 600],
+		      [300, 850],
+		      [350, 600],
+		      [350, 850]
+		  ],
+		  [ // gate_6
+		      [50, 500],
+		      [50, 750],
+		      [100, 500],
+		      [100, 750]
+		  ]
+	      ];
+
+	      for(var i = 0; i < buoys.length; i++){
+		  for(var j = 0; j < 4; j++){
+
+		      //BUOYS
+		      buoy = this.add.sprite(buoys[i][j][0], buoys[i][j][1], 'buoy').setScale(4);
+		      this.physics.add.existing(buoy, true);
+		      this.physics.add.collider(boat, buoy);
+		  }
+
+		  // CALCULATE GATES
+		  j--;
+		  var gate_X = (buoys[i][j][0] + buoys[i][j-2][0]) / 2;
+		  var gate_Y = (buoys[i][j][1] + buoys[i][j-1][1]) / 2;
+		  gates.push([gate_X, gate_Y]);
+	      }
+
+	      //APPLY BOAT PHYSICS
+	      this.physics.add.existing(boat, false);
+	      boat.body.setBounce(1, 1);
+	      boat.body.setCollideWorldBounds(true);
+
+	      //CREATE GATES
+	      gate_0 = this.add.zone(gates[0][0], gates[0][1]).setSize(100, 100);
+	      gate_1 = this.add.zone(gates[1][0], gates[1][1]).setSize(100, 100);
+	      gate_2 = this.add.zone(gates[2][0], gates[2][1]).setSize(100, 100);
+	      gate_3 = this.add.zone(gates[3][0], gates[3][1]).setSize(100, 100);
+	      gate_4 = this.add.zone(gates[4][0], gates[4][1]).setSize(100, 100);
+	      gate_5 = this.add.zone(gates[5][0], gates[5][1]).setSize(100, 100);
+	      gate_6 = this.add.zone(gates[6][0], gates[6][1]).setSize(100, 100);
+
+	      this.physics.world.enable(gate_0, 0);
+	      this.physics.world.enable(gate_1, 0);
+	      this.physics.world.enable(gate_2, 0);
+	      this.physics.world.enable(gate_3, 0);
+	      this.physics.world.enable(gate_4, 0);
+	      this.physics.world.enable(gate_5, 0);
+	      this.physics.world.enable(gate_6, 0);
+
+	      this.physics.add.overlap(boat, gate_0);
+	      this.physics.add.overlap(boat, gate_1);
+	      this.physics.add.overlap(boat, gate_2);
+	      this.physics.add.overlap(boat, gate_3);
+	      this.physics.add.overlap(boat, gate_4);
+	      this.physics.add.overlap(boat, gate_5);
+	      this.physics.add.overlap(boat, gate_6);
+
+	      //PRELIMS FOR BOAT CONTROL
+	      cursors = this.input.keyboard.createCursorKeys();
+	  },
+	  
+	  update: function(){
+	      boat.body.setVelocity(0);
+
+	      //MAKE BOAR MANEUVERABLE
+	      if(cursors.left.isDown){
+		  boat.body.setVelocityX(-300);
+	      }
+	      else if(cursors.right.isDown){
+		  boat.body.setVelocityX(300);
+	      }
+
+	      if(cursors.up.isDown){
+		  boat.body.setVelocityY(-300);
+	      }
+	      else if(cursors.down.isDown){
+		  boat.body.setVelocityY(300);
+	      }
+
+	      //PASSING THROUGH GATES
+	      if(!gate_0.body.touching.none){
+		  thruGate0 = true;
+	      }
+	      if(!gate_1.body.touching.none){
+		  thruGate1 = true;
+	      }
+	      if(!gate_2.body.touching.none){
+		  thruGate2 = true;
+	      }
+	      if(!gate_3.body.touching.none){
+		  thruGate3 = true;
+	      }
+	      if(!gate_4.body.touching.none){
+		  thruGate4 = true;
+	      }
+	      if(!gate_5.body.touching.none){
+		  thruGate5 = true;
+	      }
+	      if(!gate_6.body.touching.none){
+		  thruGate6 = true;
+	      }
+
+	      // END GAME IF (A) THRU ALL GATES (B) TOUCH BUOY
+	      if(thruGate0 && thruGate1 && thruGate2 && thruGate3 && thruGate4 && thruGate5 && thruGate6){
+		  thruAllGates = true;
+	      }
+	      if(!boat.body.blocked.none){
+		  boatBlocked = true;
+	      }
+	      if(boatBlocked){
+		  this.scene.start('dead');
+	      }
+	      if(thruAllGates){
+		  this.scene.start('win');
+	      }
+	  }
+      });
+      
+      var dead = new Phaser.Class({
+
+	  Extends: Phaser.Scene,
+	  initialize: function dead(){
+	      Phaser.Scene.call(this, {key: 'dead'});
+	  },
+	  
+	  preload: function(){
+	      this.load.image('endscreen', 'assets/end.png');
+	  },
+	  
+	  create: function(){
+	      var endscreen = this.add.sprite(500, 450, 'endscreen').setScale(10).setInteractive();
+	      endscreen.on('pointerdown', ()=>{this.scene.start('race');}, this);
+	  }
+      });
+
+      var win = new Phaser.Class({
+
+	  Extends: Phaser.Scene,
+	  initialize: function win(){Phaser.Scene.call(this, {key: 'win'})},
+	  preload: function(){
+	      this.load.image('win', 'assets/win.png');
+	  },
+	  create: function(){
+	      this.add.sprite(500, 450, 'win').setScale(10);
+	  }
+      });
+
+      var config = {
+	  type: Phaser.CONFIG,
+	  width: 1000,
+	  height: 900,
+	  backgroundColor: '#4000FF',
+	  pixelArt: true,
+	  physics: {
+	      default: 'arcade',
+	      arcade: {
+		  debug: true
+	      }
+	  },
+	  scene: [race, dead, win]
+      };
+      var game = new Phaser.Game(config);
+    </script>
+  </body>
+</html>
